@@ -58,9 +58,33 @@ The bot uses the **Big Five (OCEAN) personality model** to understand you:
 
 ---
 
+## 📸 Screenshots
+
+Here is how the bot interacts seamlessly between Telegram and Google Sheets:
+
+### 1. Daily Reports (`/r`) & Task Management (`/t`)
+*(Bot acknowledging a task completed in Telegram and logging it into Google Sheets)*
+<div align="center">
+  <img src="images/telegram_demo.png" alt="Telegram Interaction" width="45%">
+  <img src="images/sheets_demo.png" alt="Google Sheets Logging" width="45%">
+</div>
+
+### 2. Personality Insights & Weekly Reviews
+*(Example of the adaptive personality check-in and the comprehensive weekly review)*
+<div align="center">
+  <img src="images/weekly_review.png" alt="Weekly AI Review" width="45%">
+</div>
+
+---
+
 ## 🏗️ Architecture
 
-```
+*(The original system design was mapped out visually on n8n before migrating to a standalone Python architecture)*
+<div align="center">
+  <img src="images/n8n_architecture.png" alt="n8n Workflow Diagram" width="80%">
+</div>
+
+```text
 ┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │  Telegram    │────▶│  Command Router  │────▶│   AI Agents     │
 │  Bot API     │◀────│  /r /t /g /p /h  │◀────│  (Gemini Flash) │
@@ -83,7 +107,27 @@ The bot uses the **Big Five (OCEAN) personality model** to understand you:
 
 ---
 
-## 🚀 Quick Start
+## 👶 Beginner's Guide (No Coding Required!)
+
+If you've never used Python or GitHub before, follow these simple steps to get the bot running on your own computer:
+
+1. **Download Python:** Go to [python.org/downloads](https://www.python.org/downloads/) and install it. ⚠️ ***Important:** Check the box that says "Add Python to PATH" during installation!*
+2. **Download this project:** Click the green **"Code"** button at the top of this page and select **"Download ZIP"**. Extract the ZIP file to a folder.
+3. **Get your API Keys:**
+   - **Telegram:** Message [@BotFather](https://t.me/BotFather) on Telegram, send `/newbot`, and copy the token it gives you.
+   - **Gemini AI:** Go to [Google AI Studio](https://aistudio.google.com/apikey) and click "Create API key".
+4. **Set up Google Sheets:** Create a spreadsheet, add the sheet names listed below. Then, follow [this 2-minute guide](https://docs.gspread.org/en/latest/oauth2.html#for-bots-using-service-account) to get your `credentials.json` file. Put that file inside your project folder.
+5. **Configure:** Rename the `.env.example` file to `.env`, open it with Notepad, and paste your keys inside.
+6. **Start the Bot:** Open your Command Prompt (CMD) or Terminal, navigate to your folder, and run:
+   ```bash
+   pip install -r requirements.txt
+   python bot.py
+   ```
+   *🎉 Your bot is now alive and waiting for your messages on Telegram!*
+
+---
+
+## 🚀 Advanced Setup (For Developers)
 
 ### Prerequisites
 
