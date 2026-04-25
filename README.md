@@ -165,11 +165,11 @@ Create a Google Spreadsheet with these sheets and headers:
 
 | Sheet Name | Column Headers |
 |------------|---------------|
-| `gün-veri` | Tarih, Saat, Rapor |
-| `to-do list` | Tarih, Kategori, Aktivite, Durum |
-| `gunluk` | Tarih, Gunluk |
-| `projeler` | Proje, AltGorev, Durum, Yuzde, Deadline, Notlar |
-| `haftalik-degerlendirme` | Tarih, HaftaNo, Rapor, BasariYuzdesi |
+| `daily-logs` | Date, Time, Report |
+| `to-do list` | Date, Category, Task, Status |
+| `diary` | Date, Entry |
+| `projects` | Project, Subtask, Status, Percentage, Deadline, Notes |
+| `weekly-review` | Date, WeekNo, Report, SuccessPercentage |
 
 Share the spreadsheet with your service account email.
 

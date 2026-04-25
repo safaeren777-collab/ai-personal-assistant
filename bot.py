@@ -57,7 +57,7 @@ class SheetsManager:
         )
         self.client = gspread.authorize(creds)
         self.spreadsheet = self.client.open_by_key(config.SPREADSHEET_ID)
-        logger.info("Google Sheets baglantisi kuruldu.")
+        logger.info("Google Sheets connection established.")
 
     def get_sheet(self, name):
         return self.spreadsheet.worksheet(name)
@@ -67,7 +67,7 @@ class SheetsManager:
             sheet = self.get_sheet(sheet_name)
             return sheet.get_all_records()
         except Exception as e:
-            logger.error(f"Sheets okuma hatasi ({sheet_name}): {e}")
+            logger.error(f"Sheets read error ({sheet_name}): {e}")
             return []
 
     def append_row(self, sheet_name, row_dict):
@@ -78,7 +78,7 @@ class SheetsManager:
             sheet.append_row(row, value_input_option="USER_ENTERED")
             return True
         except Exception as e:
-            logger.error(f"Sheets yazma hatasi ({sheet_name}): {e}")
+            logger.error(f"Sheets write error ({sheet_name}): {e}")
             return False
 
     def get_recent_rows(self, sheet_name, n=10):
@@ -122,45 +122,45 @@ class ProfileManager:
 
     QUESTION_BANK = [
         # Aciklik (Openness)
-        "Yeni bir sey denemekten hoslanir misin yoksa bildiklerine mi sadik kalirsin?",
-        "Sanat, muzik veya edebiyat seni nasil etkiler?",
-        "Hayal kurmaktan hoslanir misin? En son ne hayal ettin?",
-        "Farkli kulturleri tanimak seni heyecanlandirir mi?",
+        "Do you like trying new things or sticking to what you know?",
+        "How does art, music, or literature affect you?",
+        "Do you enjoy daydreaming? What did you daydream about last?",
+        "Does learning about different cultures excite you?",
         # Sorumluluk (Conscientiousness)
-        "Islerini genellikle planlayarak mi yoksa anlık kararlarla mi yaparsin?",
-        "Bir projeye basladiginda bitirene kadar odaklanabilir misin?",
-        "Detaylara dikkat edersin mi yoksa buyuk resmi mi gorursun?",
-        "Daginik mi yoksa duzenli bir calisma ortamin mi var?",
+        "Do you usually plan your tasks or make spontaneous decisions?",
+        "Can you stay focused on a project from start to finish?",
+        "Are you detail-oriented, or do you focus on the big picture?",
+        "Is your workspace messy or organized?",
         # Disadonukluk (Extraversion)
-        "Kalabalik ortamlarda enerjin artar mi yoksa azalir mi?",
-        "Yalniz vakit gecirmeyi mi yoksa insanlarla olmayi mi tercih edersin?",
-        "Yeni insanlarla tanismak seni heyecanlandirir mi?",
-        "Sessiz bir aksam mi yoksa canli bir bulusma mi tercih edersin?",
+        "Does your energy increase or decrease in crowded environments?",
+        "Do you prefer spending time alone or with people?",
+        "Does meeting new people excite you?",
+        "Do you prefer a quiet evening or a lively gathering?",
         # Uyumluluk (Agreeableness)
-        "Birisiyle fikir ayriligi yasadiginda ne yaparsin?",
-        "Baskalarinin duygulari seni ne kadar etkiler?",
-        "Yardim etmek icin kendi planlarindan vazgecer misin?",
-        "Takimda calismayi mi yoksa tek basina mi olmayi tercih edersin?",
+        "What do you do when you have a disagreement with someone?",
+        "How much do others' emotions affect you?",
+        "Would you give up your own plans to help someone else?",
+        "Do you prefer working in a team or alone?",
         # Duygusal Denge (Neuroticism)
-        "Stresli durumlarda nasil tepki verirsin?",
-        "Kucuk aksilikler gununu mahveder mi?",
-        "Gelecekle ilgili endiselenme egilimin var mi?",
-        "Duygularini kontrol edebildigini dusunuyor musun?",
+        "How do you react in stressful situations?",
+        "Do minor setbacks ruin your day?",
+        "Do you tend to worry about the future?",
+        "Do you feel you can control your emotions?",
         # Degerler ve Motivasyon
-        "Hayatta en cok neye deger veriyorsun?",
-        "Basari senin icin ne anlama geliyor?",
-        "10 yil sonra kendini nerede goruyorsun?",
-        "Hangi konularda uzlasmaz bir tutumun var?",
+        "What do you value most in life?",
+        "What does success mean to you?",
+        "Where do you see yourself in 10 years?",
+        "On what issues are you uncompromising?",
         # Iletisim Tarzi
-        "Sana nasil hitap edilmesinden hoslanirsin - resmi mi samimi mi?",
-        "Uzun aciklamalar mi yoksa kisa oz bilgiler mi tercih edersin?",
-        "Motivasyon icin sert gercekler mi yoksa pozitif tesvik mi istersin?",
-        "Espri tarzin nasil - kuru mu, ince mi, absurt mu?",
+        "How do you like to be addressed - formally or informally?",
+        "Do you prefer long explanations or brief summaries?",
+        "Do you want harsh truths or positive encouragement for motivation?",
+        "What is your sense of humor like - dry, witty, or absurd?",
         # Yasam Tarzi
-        "Sabahci misin gece kusu mu?",
-        "Rutin mu sever yoksa spontan mi yasarsin?",
-        "En verimli oldugum saat dilimi hangisi dersin?",
-        "Sikildikinda ne yaparsin?",
+        "Are you an early bird or a night owl?",
+        "Do you like routine or do you live spontaneously?",
+        "What would you say is your most productive time of day?",
+        "What do you do when you are bored?",
     ]
 
     def __init__(self):
@@ -178,11 +178,11 @@ class ProfileManager:
                 "agreeableness": 0.5,
                 "neuroticism": 0.5
             },
-            "communication_style": "samimi ve kisa",
-            "motivation_style": "dengeli - bazen sert bazen destekleyici",
-            "humor_style": "bilinmiyor",
+            "communication_style": "friendly and concise",
+            "motivation_style": "balanced - sometimes strict, sometimes supportive",
+            "humor_style": "unknown",
             "values": [],
-            "personality_summary": "Henuz yeterli veri toplanmadi.",
+            "personality_summary": "Not enough data collected yet.",
             "last_updated": None,
             "total_answers": 0
         }
@@ -220,11 +220,11 @@ class ProfileManager:
         self._save()
 
     def get_profile_summary(self):
-        return self.profile.get("personality_summary", "Henuz analiz yapilmadi.")
+        return self.profile.get("personality_summary", "Analysis not performed yet.")
 
     def get_profile_for_prompt(self):
         if self.profile["total_answers"] < 3:
-            return "Kullanicinin kisilik profili henuz olusturulmadi."
+            return "User personality profile not established yet."
         p = self.profile
         bf = p["big_five"]
         return f"""KULLANICI KISILIK PROFILI:
@@ -259,14 +259,14 @@ SU FORMATTA JSON DONDUR (baska hicbir sey yazma):
     "agreeableness": 0.0-1.0 arasi,
     "neuroticism": 0.0-1.0 arasi
   }},
-  "communication_style": "kisinin tercih ettigi iletisim tarzi",
-  "motivation_style": "kisiye en uygun motivasyon yontemi",
-  "humor_style": "kisinin espri anlayisi",
-  "values": ["deger1", "deger2", "deger3"],
-  "personality_summary": "2-3 cumlelik kisilik ozeti"
+  "communication_style": "preferred communication style",
+  "motivation_style": "best motivation style for the user",
+  "humor_style": "user's sense of humor",
+  "values": ["value1", "value2", "value3"],
+  "personality_summary": "2-3 sentence personality summary"
 }}"""
         try:
-            response = gemini_pro.chat_pro(prompt, "Kisilik analizi yap")
+            response = gemini_pro.chat_pro(prompt, "Perform personality analysis")
             text = response.strip()
             if text.startswith("```"):
                 text = text.split("\n", 1)[1].rsplit("```", 1)[0]
@@ -274,9 +274,9 @@ SU FORMATTA JSON DONDUR (baska hicbir sey yazma):
             self.profile.update(result)
             self.profile["last_updated"] = datetime.now(ZoneInfo(config.TIMEZONE)).strftime("%Y-%m-%d %H:%M")
             self._save()
-            logger.info("Kisilik profili guncellendi!")
+            logger.info("Personality profile updated!")
         except Exception as e:
-            logger.error(f"Profil analiz hatasi: {e}")
+            logger.error(f"Profile analysis error: {e}")
 
 # ============================================================
 # GEMINI AI MANAGER
@@ -286,7 +286,7 @@ class GeminiManager:
         genai.configure(api_key=config.GEMINI_API_KEY)
         self.model = genai.GenerativeModel(config.GEMINI_MODEL)
         self.model_pro = genai.GenerativeModel(config.GEMINI_MODEL_PRO)
-        logger.info("Gemini API baglantisi kuruldu (Flash + Pro).")
+        logger.info("Gemini API connection established (Flash + Pro).")
 
     def chat(self, system_prompt, user_message, history=None):
         try:
@@ -299,8 +299,8 @@ class GeminiManager:
             response = chat.send_message(full_prompt)
             return response.text
         except Exception as e:
-            logger.error(f"Gemini Flash hatasi: {e}")
-            return f"Bir hata olustu: {str(e)}"
+            logger.error(f"Gemini Flash error: {e}")
+            return f"An error occurred: {str(e)}"
 
     def chat_pro(self, system_prompt, user_message):
         try:
@@ -309,8 +309,8 @@ class GeminiManager:
             response = chat.send_message(full_prompt)
             return response.text
         except Exception as e:
-            logger.error(f"Gemini Pro hatasi: {e}")
-            return f"Bir hata olustu: {str(e)}"
+            logger.error(f"Gemini Pro error: {e}")
+            return f"An error occurred: {str(e)}"
 
 # ============================================================
 # YARDIMCI
@@ -347,14 +347,14 @@ Tarih/saat: {now}"""
         memory.add_message("rapor", "model", response)
 
         # Her zaman kaydet - /r ile gelen her sey kaydedilmeli
-        if any(k in payload.lower() for k in ["goster", "listele", "oku", "ne yapmis", "rapor"]):
+        if any(k in payload.lower() for k in ["show", "list", "read", "what did i do", "report"]):
             pass  # Sadece okuma istegi, kaydetme
         else:
-            rapor_tipi = "PLAN" if any(k in payload.lower() for k in ["yapac", "planl", "hedef", "calis", "calisa"]) else "GERCEKLESEN"
+            rapor_tipi = "PLAN" if any(k in payload.lower() for k in ["will do", "plan", "goal", "study", "work"]) else "ACTUAL"
             saved = sheets.append_row(config.SHEET_GUN_VERI, {
-                "Tarih": now_istanbul().strftime("%Y-%m-%d"),
-                "Saat": now_istanbul().strftime("%H:%M"),
-                "Rapor": f"{rapor_tipi}: {payload}"
+                "Date": now_istanbul().strftime("%Y-%m-%d"),
+                "Time": now_istanbul().strftime("%H:%M"),
+                "Report": f"{rapor_tipi}: {payload}"
             })
             if saved and response:
                 response += "\n\n\u2705 Kaydedildi!"
@@ -385,14 +385,14 @@ Tarih/saat: {now}"""
         memory.add_message("todo", "user", payload)
         memory.add_message("todo", "model", response)
 
-        if not any(k in payload.lower() for k in ["listele", "goster", "neler var", "gorevlerim"]):
+        if not any(k in payload.lower() for k in ["list", "show", "what is there", "my tasks"]):
             kategori, aktivite = "", payload
             if ":" in payload:
                 parts = payload.split(":", 1)
                 kategori, aktivite = parts[0].strip(), parts[1].strip()
             saved = sheets.append_row(config.SHEET_TODO, {
-                "Tarih": now_istanbul().strftime("%Y-%m-%d"),
-                "Kategori": kategori, "Aktivite": aktivite, "Durum": "Bekliyor"
+                "Date": now_istanbul().strftime("%Y-%m-%d"),
+                "Category": kategori, "Task": aktivite, "Status": "Pending"
             })
             if saved and response:
                 response += "\n\n\u2705 Gorev eklendi!"
@@ -423,9 +423,9 @@ Tarih/saat: {now}"""
         memory.add_message("gunluk", "user", payload)
         memory.add_message("gunluk", "model", response)
 
-        if not any(k in payload.lower() for k in ["goster", "oku", "ne yapmistim", "gecen"]):
+        if not any(k in payload.lower() for k in ["goster", "read", "what did i do", "past"]):
             saved = sheets.append_row(config.SHEET_GUNLUK, {
-                "Tarih": now_istanbul().strftime("%Y-%m-%d"), "Gunluk": payload
+                "Date": now_istanbul().strftime("%Y-%m-%d"), "Entry": payload
             })
             if saved and response:
                 response += "\n\n\u2705 Gunluge kaydedildi!"
@@ -498,7 +498,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(HELP_TEXT, parse_mode="Markdown")
 
 async def cmd_rapor(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    payload = " ".join(context.args) if context.args else "Son raporlarimi goster"
+    payload = " ".join(context.args) if context.args else "Show my latest reports"
     await update.message.reply_chat_action("typing")
     response = RaporAgent.handle(payload, context.bot_data["sheets"],
                                   context.bot_data["gemini"], context.bot_data["memory"],
@@ -506,7 +506,7 @@ async def cmd_rapor(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(response)
 
 async def cmd_todo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    payload = " ".join(context.args) if context.args else "Gorevlerimi listele"
+    payload = " ".join(context.args) if context.args else "List my tasks"
     await update.message.reply_chat_action("typing")
     response = TodoAgent.handle(payload, context.bot_data["sheets"],
                                  context.bot_data["gemini"], context.bot_data["memory"],
@@ -514,7 +514,7 @@ async def cmd_todo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(response)
 
 async def cmd_gunluk(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    payload = " ".join(context.args) if context.args else "Son gunluk kayitlarimi goster"
+    payload = " ".join(context.args) if context.args else "Show my latest diary entries"
     await update.message.reply_chat_action("typing")
     response = GunlukAgent.handle(payload, context.bot_data["sheets"],
                                     context.bot_data["gemini"], context.bot_data["memory"],
@@ -535,23 +535,23 @@ async def cmd_profil(update: Update, context: ContextTypes.DEFAULT_TYPE):
     p = profile_mgr.profile
     bf = p["big_five"]
 
-    text = f"""🧠 **Kisilik Profilin**
+    text = f"""🧠 **Your Personality Profile**
 
-📊 **Big Five Skorlari:**
-• Aciklik: {'█' * int(bf['openness']*10)}{'░' * (10-int(bf['openness']*10))} {bf['openness']:.1f}
-• Sorumluluk: {'█' * int(bf['conscientiousness']*10)}{'░' * (10-int(bf['conscientiousness']*10))} {bf['conscientiousness']:.1f}
-• Disadonukluk: {'█' * int(bf['extraversion']*10)}{'░' * (10-int(bf['extraversion']*10))} {bf['extraversion']:.1f}
-• Uyumluluk: {'█' * int(bf['agreeableness']*10)}{'░' * (10-int(bf['agreeableness']*10))} {bf['agreeableness']:.1f}
-• Hassasiyet: {'█' * int(bf['neuroticism']*10)}{'░' * (10-int(bf['neuroticism']*10))} {bf['neuroticism']:.1f}
+📊 **Big Five Scores:**
+• Openness: {'█' * int(bf['openness']*10)}{'░' * (10-int(bf['openness']*10))} {bf['openness']:.1f}
+• Conscientiousness: {'█' * int(bf['conscientiousness']*10)}{'░' * (10-int(bf['conscientiousness']*10))} {bf['conscientiousness']:.1f}
+• Extraversion: {'█' * int(bf['extraversion']*10)}{'░' * (10-int(bf['extraversion']*10))} {bf['extraversion']:.1f}
+• Agreeableness: {'█' * int(bf['agreeableness']*10)}{'░' * (10-int(bf['agreeableness']*10))} {bf['agreeableness']:.1f}
+• Neuroticism: {'█' * int(bf['neuroticism']*10)}{'░' * (10-int(bf['neuroticism']*10))} {bf['neuroticism']:.1f}
 
-💬 Iletisim: {p['communication_style']}
-🎯 Motivasyon: {p['motivation_style']}
-😄 Espri: {p['humor_style']}
-💎 Degerler: {', '.join(p['values']) if p['values'] else 'Henuz belirlenmedi'}
+💬 Communication: {p['communication_style']}
+🎯 Motivation: {p['motivation_style']}
+😄 Humor: {p['humor_style']}
+💎 Values: {', '.join(p['values']) if p['values'] else 'Not determined yet'}
 
 📝 {p['personality_summary']}
 
-_Toplam {p['total_answers']} soru cevaplanmis. Son guncelleme: {p.get('last_updated', 'Henuz yapilmadi')}_"""
+_Total {p['total_answers']} questions answered. Last updated: {p.get('last_updated', 'Not yet')}_"""
 
     await update.message.reply_text(text)
 
@@ -571,7 +571,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if profile_mgr.profile["total_answers"] % 5 == 0:
             await profile_mgr.analyze_profile(context.bot_data["gemini"])
 
-        await update.message.reply_text("Tesekkurler, cevabini kaydettim! 📝")
+        await update.message.reply_text("Thank you, I saved your answer! 📝")
         return
 
     # Normal sohbet
@@ -590,7 +590,7 @@ async def sabah_brifing(app):
     profile_mgr = app.bot_data["profile"]
 
     gorevler = sheets.get_all_rows(config.SHEET_TODO)
-    bekleyenler = [g for g in gorevler if g.get("Durum", "").lower() != "tamamlandi"]
+    bekleyenler = [g for g in gorevler if g.get("Status", "").lower() != "tamamlandi"]
     profile_ctx = profile_mgr.get_profile_for_prompt()
 
     prompt = f"""Sen benim kisisel asistanimsin. Kisa bir sabah brifingi hazirla.
@@ -602,9 +602,9 @@ Bekleyen gorevler: {json.dumps(bekleyenler, ensure_ascii=False)}
 
 Kurallar: Gunaydin de, gorevleri listele, 4-5 satir sade mesaj."""
 
-    response = gemini.chat(prompt, "Sabah brifingimi hazirla")
+    response = gemini.chat(prompt, "Prepare my morning briefing")
     await app.bot.send_message(chat_id=config.CHAT_ID, text=response)
-    logger.info("Sabah brifingi gonderildi.")
+    logger.info("Morning briefing sent.")
 
 
 async def koc_mesaj(app):
@@ -629,7 +629,7 @@ Kisa (3-4 cumle), samimi ama sert."""
 
     response = gemini.chat(prompt, f"Saat {saat}, koc mesaji")
     await app.bot.send_message(chat_id=config.CHAT_ID, text=response)
-    logger.info(f"Koc mesaji gonderildi (saat {saat}).")
+    logger.info(f"Coach message sent (saat {saat}).")
 
 
 async def haftalik_degerlendirme(app):
@@ -663,17 +663,17 @@ RAPOR BASLIKLARI:
 6. MOTIVASYON - Kisilik tarzina uygun kapatis"""
 
     # PRO model kullan!
-    response = gemini.chat_pro(prompt, "Haftalik degerlendirme yap")
+    response = gemini.chat_pro(prompt, "Do a weekly review")
 
     sheets.append_row(config.SHEET_HAFTALIK, {
-        "Tarih": now_istanbul().strftime("%Y-%m-%d"),
-        "HaftaNo": str(now_istanbul().isocalendar()[1]),
-        "Rapor": response[:500],
-        "BasariYuzdesi": ""
+        "Date": now_istanbul().strftime("%Y-%m-%d"),
+        "WeekNo": str(now_istanbul().isocalendar()[1]),
+        "Report": response[:500],
+        "SuccessPercentage": ""
     })
 
     await app.bot.send_message(chat_id=config.CHAT_ID, text=response)
-    logger.info("Haftalik degerlendirme gonderildi (Gemini Pro).")
+    logger.info("Weekly review sent (Gemini Pro).")
 
 
 async def kisilik_sorusu(app):
@@ -684,10 +684,10 @@ async def kisilik_sorusu(app):
 
     await app.bot.send_message(
         chat_id=config.CHAT_ID,
-        text=f"🧠 **Seni tanimak istiyorum:**\n\n_{question}_\n\n_(Cevabini aynen yaz, ben kaydedecegim)_",
+        text=f"🧠 **I want to get to know you:**\n\n_{question}_\n\n_(Just type your answer, I will save it)_",
         parse_mode="Markdown"
     )
-    logger.info("Kisilik sorusu gonderildi.")
+    logger.info("Personality question sent.")
 
 
 def schedule_personality_questions(scheduler, app):
@@ -708,15 +708,15 @@ def schedule_personality_questions(scheduler, app):
                 args=[app],
                 id=f"personality_{i}_{now.strftime('%Y%m%d')}"
             )
-            logger.info(f"Kisilik sorusu planlanandi: {run_time.strftime('%H:%M')}")
+            logger.info(f"Personality question scheduled: {run_time.strftime('%H:%M')}")
 
 # ============================================================
 # ANA PROGRAM
 # ============================================================
 def main():
     print("=" * 50)
-    print("  AKILLI KISISEL ASISTAN v2.0")
-    print("  Kisilik Profili + Gemini Pro")
+    print("  AI PERSONAL ASSISTANT v2.0")
+    print("  Personality Profile + Gemini Pro")
     print("=" * 50)
 
     sheets = SheetsManager()
@@ -768,10 +768,10 @@ def main():
     schedule_personality_questions(scheduler, app)
 
     scheduler.start()
-    logger.info("Zamanlayici baslatildi.")
+    logger.info("Scheduler started.")
 
-    print(f"\nKisilik profili: {profile_mgr.profile['total_answers']} soru cevaplanmis")
-    print(f"Zamanli gorevler aktif. Bot calisiyor...\n")
+    print(f"\nPersonality profile: {profile_mgr.profile['total_answers']} questions answered")
+    print(f"Scheduled tasks active. Bot is running...\n")
 
     app.run_polling(drop_pending_updates=True)
 

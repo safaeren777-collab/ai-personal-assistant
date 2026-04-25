@@ -40,16 +40,16 @@ SHEETS_CREDENTIALS_FILE = os.getenv("SHEETS_CREDENTIALS_FILE", "credentials.json
 SPREADSHEET_ID = _require("SPREADSHEET_ID")
 
 # Sheet names (customize if your sheets have different names)
-SHEET_GUN_VERI = os.getenv("SHEET_GUN_VERI", "g\u00fcn-veri")
+SHEET_GUN_VERI = os.getenv("SHEET_GUN_VERI", "daily-logs")
 SHEET_TODO = os.getenv("SHEET_TODO", "to-do list")
-SHEET_GUNLUK = os.getenv("SHEET_GUNLUK", "gunluk")
-SHEET_PROJELER = os.getenv("SHEET_PROJELER", "projeler")
-SHEET_HAFTALIK = os.getenv("SHEET_HAFTALIK", "haftalik-degerlendirme")
+SHEET_GUNLUK = os.getenv("SHEET_GUNLUK", "diary")
+SHEET_PROJELER = os.getenv("SHEET_PROJELER", "projects")
+SHEET_HAFTALIK = os.getenv("SHEET_HAFTALIK", "weekly-review")
 
 # ============================================================
-# Scheduling (Istanbul timezone by default)
+# Scheduling
 # ============================================================
-TIMEZONE = os.getenv("TIMEZONE", "Europe/Istanbul")
+TIMEZONE = os.getenv("TIMEZONE", "UTC")
 BRIFING_HOUR = int(os.getenv("BRIFING_HOUR", "8"))
 BRIFING_MINUTE = int(os.getenv("BRIFING_MINUTE", "0"))
 KOC_HOURS = [int(h) for h in os.getenv("KOC_HOURS", "12,16,20,0").split(",")]
