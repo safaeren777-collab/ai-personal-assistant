@@ -1,0 +1,12 @@
+.env
+credentials.json
+memory.json
+profile.json
+profile_qa.json
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db
+*.log
