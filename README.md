@@ -32,9 +32,9 @@ Built with Python • Google Gemini • Google Sheets • APScheduler
 | Schedule | Feature |
 |----------|---------|
 | ☀️ **08:00 daily** | Morning briefing with pending tasks |
-| 🏋️ **Every 4 hours** | Performance coach — asks what you did and plans next |
+| 🌙 **23:59 daily** | Performance coach — asks what you did today and plans for tomorrow |
 | 📈 **Monday 00:30** | Weekly review using Gemini Pro — deep analysis of your entire week |
-| 🧠 **Random (3x/day)** | Personality questions to build your psychological profile |
+| 🧠 **Random (1-3x/day)**| Personality questions to build your psychological profile (drops to 1/day after 20 questions) |
 
 ### 🎭 Adaptive Personality System
 
@@ -55,6 +55,21 @@ The bot uses the **Big Five (OCEAN) personality model** to understand you:
 • Agreeableness:      ███████░░░ 0.7
 • Neuroticism:        ███░░░░░░░ 0.3
 ```
+
+---
+
+## 📝 Engineer's Diary: A Multidisciplinary Approach
+
+When I first built this assistant, I wanted it to keep me accountable constantly. I had the coach checking in on me every 4 hours! But as it turns out, having an AI bombard you with performance questions all day is incredibly exhausting. 
+
+To solve this, I decided to take a multidisciplinary approach and consulted with **Mahmut Yiğit Topal**, an Istanbul University graduate who is currently pursuing his Master's degree in Psychology. Mahmut provided incredible insights on human motivation and cognitive load. He pointed out that constant timed questions lead to fatigue rather than productivity.
+
+Based on his psychological feedback, I overhauled the system:
+- **The Coach Check-in** now happens only once a day at midnight (23:59), giving you space to breathe and reflect on the day peacefully.
+- **Personality Questions** are capped. Once the bot gets to know you (after 20 questions), it drops down to a relaxed 1 question per day.
+- **Sage Mode (`/bilge`)** was introduced to give you advice secretly tailored to your Big Five personality traits, without sounding like a robotic analyst.
+
+A huge thanks to Mahmut for bringing a human-centric psychological perspective into this engineering project!
 
 ---
 

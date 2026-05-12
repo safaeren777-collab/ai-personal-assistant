@@ -1,19 +1,6 @@
 """
 AI Personal Assistant — Standalone Telegram Bot v2.0
-
-A self-hosted, AI-powered personal assistant that runs as a Telegram bot.
-Features include task management, performance tracking, project management,
-diary keeping, personality profiling (Big Five model), and scheduled
-coaching/review messages.
-
-Tech stack:
-    - Google Gemini (Flash + Pro) for AI
-    - Google Sheets for persistent data storage
-    - APScheduler for scheduled tasks
-    - python-telegram-bot for Telegram integration
-
-Author: Safa Eren (github.com/safaeren777-collab)
-License: MIT
+Personality Profile System + Gemini Pro Weekly Analysis + Sage Mode
 """
 
 import json
@@ -86,7 +73,7 @@ class SheetsManager:
         return rows[-n:] if len(rows) > n else rows
 
 # ============================================================
-# HAFIZA YONETICISI
+# MEMORY MANAGER
 # ============================================================
 class MemoryManager:
     def __init__(self):
@@ -115,53 +102,10 @@ class MemoryManager:
         self._save()
 
 # ============================================================
-# KISILIK PROFILI YONETICISI
+# PERSONALITY PROFILE MANAGER
 # ============================================================
 class ProfileManager:
-    """Big Five + degerler + iletisim tarzi profili"""
-
-    QUESTION_BANK = [
-        # Aciklik (Openness)
-        "Do you like trying new things or sticking to what you know?",
-        "How does art, music, or literature affect you?",
-        "Do you enjoy daydreaming? What did you daydream about last?",
-        "Does learning about different cultures excite you?",
-        # Sorumluluk (Conscientiousness)
-        "Do you usually plan your tasks or make spontaneous decisions?",
-        "Can you stay focused on a project from start to finish?",
-        "Are you detail-oriented, or do you focus on the big picture?",
-        "Is your workspace messy or organized?",
-        # Disadonukluk (Extraversion)
-        "Does your energy increase or decrease in crowded environments?",
-        "Do you prefer spending time alone or with people?",
-        "Does meeting new people excite you?",
-        "Do you prefer a quiet evening or a lively gathering?",
-        # Uyumluluk (Agreeableness)
-        "What do you do when you have a disagreement with someone?",
-        "How much do others' emotions affect you?",
-        "Would you give up your own plans to help someone else?",
-        "Do you prefer working in a team or alone?",
-        # Duygusal Denge (Neuroticism)
-        "How do you react in stressful situations?",
-        "Do minor setbacks ruin your day?",
-        "Do you tend to worry about the future?",
-        "Do you feel you can control your emotions?",
-        # Degerler ve Motivasyon
-        "What do you value most in life?",
-        "What does success mean to you?",
-        "Where do you see yourself in 10 years?",
-        "On what issues are you uncompromising?",
-        # Iletisim Tarzi
-        "How do you like to be addressed - formally or informally?",
-        "Do you prefer long explanations or brief summaries?",
-        "Do you want harsh truths or positive encouragement for motivation?",
-        "What is your sense of humor like - dry, witty, or absurd?",
-        # Yasam Tarzi
-        "Are you an early bird or a night owl?",
-        "Do you like routine or do you live spontaneously?",
-        "What would you say is your most productive time of day?",
-        "What do you do when you are bored?",
-    ]
+    """Big Five + values + communication style profile"""
 
     def __init__(self):
         self.profile_file = config.PROFILE_FILE
@@ -199,17 +143,6 @@ class ProfileManager:
         with open(self.qa_file, "w", encoding="utf-8") as f:
             json.dump(self.qa_history, f, ensure_ascii=False, indent=2)
 
-    def get_random_question(self):
-        asked = set(self.qa_history.get("asked_indices", []))
-        available = [i for i in range(len(self.QUESTION_BANK)) if i not in asked]
-        if not available:
-            self.qa_history["asked_indices"] = []
-            available = list(range(len(self.QUESTION_BANK)))
-        idx = random.choice(available)
-        self.qa_history["asked_indices"].append(idx)
-        self._save()
-        return self.QUESTION_BANK[idx]
-
     def record_answer(self, question, answer):
         self.qa_history["questions"].append({
             "q": question,
@@ -227,40 +160,40 @@ class ProfileManager:
             return "User personality profile not established yet."
         p = self.profile
         bf = p["big_five"]
-        return f"""KULLANICI KISILIK PROFILI:
-- Aciklik: {bf['openness']:.1f}/1.0
-- Sorumluluk: {bf['conscientiousness']:.1f}/1.0
-- Disadonukluk: {bf['extraversion']:.1f}/1.0
-- Uyumluluk: {bf['agreeableness']:.1f}/1.0
-- Duygusal Hassasiyet: {bf['neuroticism']:.1f}/1.0
-- Iletisim Tercihi: {p['communication_style']}
-- Motivasyon Tarzi: {p['motivation_style']}
-- Espri Tarzi: {p['humor_style']}
-- Degerler: {', '.join(p['values']) if p['values'] else 'Belirlenmedi'}
-- Ozet: {p['personality_summary']}
+        return f"""USER PERSONALITY PROFILE:
+- Openness: {bf['openness']:.1f}/1.0
+- Conscientiousness: {bf['conscientiousness']:.1f}/1.0
+- Extraversion: {bf['extraversion']:.1f}/1.0
+- Agreeableness: {bf['agreeableness']:.1f}/1.0
+- Neuroticism: {bf['neuroticism']:.1f}/1.0
+- Communication Preference: {p['communication_style']}
+- Motivation Style: {p['motivation_style']}
+- Humor Style: {p['humor_style']}
+- Values: {', '.join(p['values']) if p['values'] else 'Not determined'}
+- Summary: {p['personality_summary']}
 
-BU PROFILE GORE KONUSMA TARZINI AYARLA. Kullanicinin sevdigi tarzi kullan."""
+ADAPT YOUR COMMUNICATION STYLE TO THIS PROFILE. Use the tone the user prefers."""
 
     async def analyze_profile(self, gemini_pro):
         if len(self.qa_history["questions"]) < 5:
             return
         qa_text = json.dumps(self.qa_history["questions"][-30:], ensure_ascii=False)
-        prompt = f"""Sen bir kisilik psikoloji uzmanisin. Asagidaki soru-cevaplari analiz ederek Big Five kisilik modeline gore bir profil cikar.
+        prompt = f"""You are an expert in personality psychology. Analyze the following Q&A history and extract a profile based on the Big Five personality model.
 
-SORU-CEVAPLAR:
+Q&A HISTORY:
 {qa_text}
 
-SU FORMATTA JSON DONDUR (baska hicbir sey yazma):
+RETURN A JSON WITH THIS EXACT FORMAT (do not write anything else):
 {{
   "big_five": {{
-    "openness": 0.0-1.0 arasi,
-    "conscientiousness": 0.0-1.0 arasi,
-    "extraversion": 0.0-1.0 arasi,
-    "agreeableness": 0.0-1.0 arasi,
-    "neuroticism": 0.0-1.0 arasi
+    "openness": float between 0.0-1.0,
+    "conscientiousness": float between 0.0-1.0,
+    "extraversion": float between 0.0-1.0,
+    "agreeableness": float between 0.0-1.0,
+    "neuroticism": float between 0.0-1.0
   }},
-  "communication_style": "preferred communication style",
-  "motivation_style": "best motivation style for the user",
+  "communication_style": "user's preferred communication style",
+  "motivation_style": "best motivation method for the user",
   "humor_style": "user's sense of humor",
   "values": ["value1", "value2", "value3"],
   "personality_summary": "2-3 sentence personality summary"
@@ -295,7 +228,7 @@ class GeminiManager:
                 for msg in history[-config.MEMORY_WINDOW:]:
                     messages.append({"role": msg["role"], "parts": [msg["content"]]})
             chat = self.model.start_chat(history=messages)
-            full_prompt = f"[SISTEM TALIMATI]\n{system_prompt}\n\n[KULLANICI MESAJI]\n{user_message}"
+            full_prompt = f"[SYSTEM INSTRUCTION]\n{system_prompt}\n\n[USER MESSAGE]\n{user_message}"
             response = chat.send_message(full_prompt)
             return response.text
         except Exception as e:
@@ -305,7 +238,7 @@ class GeminiManager:
     def chat_pro(self, system_prompt, user_message):
         try:
             chat = self.model_pro.start_chat()
-            full_prompt = f"[SISTEM TALIMATI]\n{system_prompt}\n\n[KULLANICI MESAJI]\n{user_message}"
+            full_prompt = f"[SYSTEM INSTRUCTION]\n{system_prompt}\n\n[USER MESSAGE]\n{user_message}"
             response = chat.send_message(full_prompt)
             return response.text
         except Exception as e:
@@ -313,51 +246,51 @@ class GeminiManager:
             return f"An error occurred: {str(e)}"
 
 # ============================================================
-# YARDIMCI
+# UTILITIES
 # ============================================================
-def now_istanbul():
+def now_local():
     return datetime.now(ZoneInfo(config.TIMEZONE))
 
 # ============================================================
-# AJANLAR
+# AGENTS
 # ============================================================
-class RaporAgent:
+class ReportAgent:
     @staticmethod
     def handle(payload, sheets, gemini, memory, profile_mgr):
         data = sheets.get_recent_rows(config.SHEET_GUN_VERI, 15)
-        now = now_istanbul().strftime("%Y-%m-%d %H:%M")
+        now = now_local().strftime("%Y-%m-%d %H:%M")
         profile_ctx = profile_mgr.get_profile_for_prompt()
-        prompt = f"""Sen bir Performans Rapor Ajanisin.
+        prompt = f"""You are a Performance Report Agent.
 
 {profile_ctx}
 
-GOREV:
-1. Gelecek ifadeler (yapacagim, planliyorum) -> PLAN olarak kaydet.
-2. Gecmis ifadeler (yaptim, tamamladim) -> GERCEKLESEN olarak kaydet.
-3. Mevcut verileri inceleyerek baglamli cevap ver.
+TASK:
+1. Future statements (I will do, planning to) -> Save as PLAN.
+2. Past statements (I did, completed) -> Save as ACTUAL.
+3. Review the existing data and provide a contextual response.
 
-MEVCUT GUN-VERI:
+CURRENT DAILY DATA:
 {json.dumps(data, ensure_ascii=False)}
 
-Tarih/saat: {now}"""
+Date/Time: {now}"""
 
-        history = memory.get_history("rapor")
+        history = memory.get_history("report")
         response = gemini.chat(prompt, payload, history)
-        memory.add_message("rapor", "user", payload)
-        memory.add_message("rapor", "model", response)
+        memory.add_message("report", "user", payload)
+        memory.add_message("report", "model", response)
 
-        # Her zaman kaydet - /r ile gelen her sey kaydedilmeli
+        # Always save unless it's just a read request
         if any(k in payload.lower() for k in ["show", "list", "read", "what did i do", "report"]):
-            pass  # Sadece okuma istegi, kaydetme
+            pass  # Only reading, don't save
         else:
-            rapor_tipi = "PLAN" if any(k in payload.lower() for k in ["will do", "plan", "goal", "study", "work"]) else "ACTUAL"
+            report_type = "PLAN" if any(k in payload.lower() for k in ["will do", "plan", "goal", "work on"]) else "ACTUAL"
             saved = sheets.append_row(config.SHEET_GUN_VERI, {
-                "Date": now_istanbul().strftime("%Y-%m-%d"),
-                "Time": now_istanbul().strftime("%H:%M"),
-                "Report": f"{rapor_tipi}: {payload}"
+                "Date": now_local().strftime("%Y-%m-%d"),
+                "Time": now_local().strftime("%H:%M"),
+                "Report": f"{report_type}: {payload}"
             })
             if saved and response:
-                response += "\n\n\u2705 Kaydedildi!"
+                response += "\n\n✅ Saved successfully!"
         return response
 
 
@@ -365,20 +298,22 @@ class TodoAgent:
     @staticmethod
     def handle(payload, sheets, gemini, memory, profile_mgr):
         data = sheets.get_all_rows(config.SHEET_TODO)
-        now = now_istanbul().strftime("%Y-%m-%d %H:%M")
+        now = now_local().strftime("%Y-%m-%d %H:%M")
         profile_ctx = profile_mgr.get_profile_for_prompt()
-        prompt = f"""Sen bir To-Do Listesi Yonetim Ajanisin.
+        prompt = f"""You are a To-Do List Management Agent.
 
 {profile_ctx}
 
-GOREV:
-1. Yeni gorev -> kaydet. 2. Bitirdim -> Durum guncelle. 3. Goster -> listele.
-Kategori varsa kullan (Spor, Ders, Proje vb.)
+TASK:
+1. New task -> Save it. 
+2. Completed -> Update status. 
+3. Show -> List tasks.
+Extract category if provided (e.g., Work, Study, Project).
 
-MEVCUT GOREVLER:
+CURRENT TASKS:
 {json.dumps(data, ensure_ascii=False)}
 
-Tarih/saat: {now}"""
+Date/Time: {now}"""
 
         history = memory.get_history("todo")
         response = gemini.chat(prompt, payload, history)
@@ -386,110 +321,138 @@ Tarih/saat: {now}"""
         memory.add_message("todo", "model", response)
 
         if not any(k in payload.lower() for k in ["list", "show", "what is there", "my tasks"]):
-            kategori, aktivite = "", payload
+            category, activity = "", payload
             if ":" in payload:
                 parts = payload.split(":", 1)
-                kategori, aktivite = parts[0].strip(), parts[1].strip()
+                category, activity = parts[0].strip(), parts[1].strip()
             saved = sheets.append_row(config.SHEET_TODO, {
-                "Date": now_istanbul().strftime("%Y-%m-%d"),
-                "Category": kategori, "Task": aktivite, "Status": "Pending"
+                "Date": now_local().strftime("%Y-%m-%d"),
+                "Category": category, "Task": activity, "Status": "Pending"
             })
             if saved and response:
-                response += "\n\n\u2705 Gorev eklendi!"
+                response += "\n\n✅ Task added!"
             elif saved:
-                response = "\u2705 Gorev eklendi!"
+                response = "✅ Task added!"
         return response
 
 
-class GunlukAgent:
+class DiaryAgent:
     @staticmethod
     def handle(payload, sheets, gemini, memory, profile_mgr):
         data = sheets.get_recent_rows(config.SHEET_GUNLUK, 15)
-        now = now_istanbul().strftime("%Y-%m-%d %H:%M")
+        now = now_local().strftime("%Y-%m-%d %H:%M")
         profile_ctx = profile_mgr.get_profile_for_prompt()
-        prompt = f"""Sen bir Gunluk Ajanisin.
+        prompt = f"""You are a Diary Agent.
 
 {profile_ctx}
 
-GOREV: Olay anlatilirsa kaydet. Gecmis sorulursa oku ve yanitla.
+TASK: Record events or memories. If asked about the past, read and respond.
 
-MEVCUT GUNLUK:
+CURRENT DIARY:
 {json.dumps(data, ensure_ascii=False)}
 
-Tarih/saat: {now}"""
+Date/Time: {now}"""
 
-        history = memory.get_history("gunluk")
+        history = memory.get_history("diary")
         response = gemini.chat(prompt, payload, history)
-        memory.add_message("gunluk", "user", payload)
-        memory.add_message("gunluk", "model", response)
+        memory.add_message("diary", "user", payload)
+        memory.add_message("diary", "model", response)
 
-        if not any(k in payload.lower() for k in ["goster", "read", "what did i do", "past"]):
+        if not any(k in payload.lower() for k in ["show", "read", "what did i do", "past"]):
             saved = sheets.append_row(config.SHEET_GUNLUK, {
-                "Date": now_istanbul().strftime("%Y-%m-%d"), "Entry": payload
+                "Date": now_local().strftime("%Y-%m-%d"), "Entry": payload
             })
             if saved and response:
-                response += "\n\n\u2705 Gunluge kaydedildi!"
+                response += "\n\n✅ Saved to diary!"
             elif saved:
-                response = "\u2705 Gunluge kaydedildi!"
+                response = "✅ Saved to diary!"
         return response
 
 
-class ProjeAgent:
+class ProjectAgent:
     @staticmethod
     def handle(payload, sheets, gemini, memory, profile_mgr):
         data = sheets.get_all_rows(config.SHEET_PROJELER)
-        now = now_istanbul().strftime("%Y-%m-%d %H:%M")
+        now = now_local().strftime("%Y-%m-%d %H:%M")
         profile_ctx = profile_mgr.get_profile_for_prompt()
-        prompt = f"""Sen bir Proje Yonetim Ajanisin.
+        prompt = f"""You are a Project Management Agent.
 
 {profile_ctx}
 
-GOREV: Yeni proje/gorev ekle, durum sor, ilerleme guncelle.
-Sutunlar: Proje, AltGorev, Durum, Yuzde, Deadline, Notlar
+TASK: Add new project/subtask, check status, or update progress.
+Columns: Project, Subtask, Status, Percentage, Deadline, Notes
 
-MEVCUT PROJELER:
+CURRENT PROJECTS:
 {json.dumps(data, ensure_ascii=False)}
 
-Tarih/saat: {now}"""
+Date/Time: {now}"""
 
-        history = memory.get_history("proje")
+        history = memory.get_history("project")
         response = gemini.chat(prompt, payload, history)
-        memory.add_message("proje", "user", payload)
-        memory.add_message("proje", "model", response)
+        memory.add_message("project", "user", payload)
+        memory.add_message("project", "model", response)
         return response
 
 
-class SohbetAgent:
+class ChatAgent:
     @staticmethod
     def handle(payload, gemini, memory, profile_mgr):
-        now = now_istanbul().strftime("%Y-%m-%d %H:%M")
+        now = now_local().strftime("%Y-%m-%d %H:%M")
         profile_ctx = profile_mgr.get_profile_for_prompt()
-        prompt = f"""Sen samimi bir sohbet asistanisin.
+        prompt = f"""You are a friendly and engaging chat assistant.
 
 {profile_ctx}
 
-Tarih/saat: {now}"""
+Date/Time: {now}"""
 
-        history = memory.get_history("sohbet")
+        history = memory.get_history("chat")
         response = gemini.chat(prompt, payload, history)
-        memory.add_message("sohbet", "user", payload)
-        memory.add_message("sohbet", "model", response)
+        memory.add_message("chat", "user", payload)
+        memory.add_message("chat", "model", response)
+        return response
+
+
+class SageAgent:
+    @staticmethod
+    def handle(payload, gemini, memory, profile_mgr):
+        now = now_local().strftime("%Y-%m-%d %H:%M")
+        profile_ctx = profile_mgr.get_profile_for_prompt()
+        prompt = f"""You are a legendary 'Sage' with a profound worldview and a highly analytical mind. The user is consulting you about real-life challenges or dilemmas.
+
+{profile_ctx}
+
+TASKS AND RULES:
+1. SECRETLY take the user's personality profile, strengths/weaknesses, and values (provided above) into account to show them the most logical, efficient, and correct path.
+2. NEVER reveal to the user that you know their personality profile (DO NOT use phrases like "because of your high agreeableness" or "according to your profile"). Only use this information in the subtext of your advice and guidance.
+3. Offer a perspective that is philosophical yet completely pragmatic, actionable, and mind-opening.
+4. Do not be overly long or boring; be clear and impactful.
+
+Date/Time: {now}"""
+
+        history = memory.get_history("sage")
+        response = gemini.chat(prompt, payload, history)
+        memory.add_message("sage", "user", payload)
+        memory.add_message("sage", "model", response)
+        
+        # Record this conversation to feed the personality analysis
+        profile_mgr.record_answer("User consulted the Sage regarding:", payload)
+        
         return response
 
 # ============================================================
-# HELP MENUSU
+# HELP MENU
 # ============================================================
-HELP_TEXT = """🤖 **Kisisel Asistan v2.0**
+HELP_TEXT = """🤖 **Personal Assistant v2.0**
 
-/r [cevap] - Rapor tablosunu okuyup yazar
-/t [gorev] - To-Do listesini yonetir
-/g [ani] - Gunlugu okuyup yazar
-/p [proje] - Proje takibi yapar
-/profil - Kisilik profilini goster
-/h - Bu menuyu gosterir
+/r [message] - Read/Write to the Report table
+/t [task] - Manage To-Do list
+/g [memory] - Read/Write to the Diary
+/p [project] - Project tracking
+/bilge [topic] - Consult the Sage for mind-opening advice
+/profil - Show your Personality Profile
+/h - Show this menu
 
-_(Komutsuz yazilar standart sohbete gider)_
-_(Gun icinde rastgele kisilik sorulari gelecek)_"""
+_(Messages without a command go to standard chat)_"""
 
 # ============================================================
 # TELEGRAM HANDLERS
@@ -497,10 +460,10 @@ _(Gun icinde rastgele kisilik sorulari gelecek)_"""
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(HELP_TEXT, parse_mode="Markdown")
 
-async def cmd_rapor(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     payload = " ".join(context.args) if context.args else "Show my latest reports"
     await update.message.reply_chat_action("typing")
-    response = RaporAgent.handle(payload, context.bot_data["sheets"],
+    response = ReportAgent.handle(payload, context.bot_data["sheets"],
                                   context.bot_data["gemini"], context.bot_data["memory"],
                                   context.bot_data["profile"])
     await update.message.reply_text(response)
@@ -513,24 +476,24 @@ async def cmd_todo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                  context.bot_data["profile"])
     await update.message.reply_text(response)
 
-async def cmd_gunluk(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_diary(update: Update, context: ContextTypes.DEFAULT_TYPE):
     payload = " ".join(context.args) if context.args else "Show my latest diary entries"
     await update.message.reply_chat_action("typing")
-    response = GunlukAgent.handle(payload, context.bot_data["sheets"],
+    response = DiaryAgent.handle(payload, context.bot_data["sheets"],
                                     context.bot_data["gemini"], context.bot_data["memory"],
                                     context.bot_data["profile"])
     await update.message.reply_text(response)
 
-async def cmd_proje(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    payload = " ".join(context.args) if context.args else "Proje durumlarini goster"
+async def cmd_project(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    payload = " ".join(context.args) if context.args else "Show project statuses"
     await update.message.reply_chat_action("typing")
-    response = ProjeAgent.handle(payload, context.bot_data["sheets"],
+    response = ProjectAgent.handle(payload, context.bot_data["sheets"],
                                    context.bot_data["gemini"], context.bot_data["memory"],
                                    context.bot_data["profile"])
     await update.message.reply_text(response)
 
-async def cmd_profil(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Kisilik profilini goster"""
+async def cmd_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show personality profile"""
     profile_mgr = context.bot_data["profile"]
     p = profile_mgr.profile
     bf = p["big_five"]
@@ -555,119 +518,135 @@ _Total {p['total_answers']} questions answered. Last updated: {p.get('last_updat
 
     await update.message.reply_text(text)
 
+async def cmd_sage(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text("Please write the topic you want to consult about. Example: /bilge What path should I follow in my career?")
+        return
+
+    payload = " ".join(context.args)
+    await update.message.reply_chat_action("typing")
+    
+    response = SageAgent.handle(payload, context.bot_data["gemini"],
+                                 context.bot_data["memory"], context.bot_data["profile"])
+    await update.message.reply_text(response)
+    
+    # If this new entry reaches a multiple of 5, update the profile
+    profile_mgr = context.bot_data["profile"]
+    if profile_mgr.profile["total_answers"] % 5 == 0:
+        await profile_mgr.analyze_profile(context.bot_data["gemini"])
+
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text or ""
     if not text.strip():
         return
     profile_mgr = context.bot_data["profile"]
 
-    # Kisilik sorusuna cevap mi?
+    # Is it an answer to a personality question?
     pending = context.bot_data.get("pending_personality_q")
     if pending:
         profile_mgr.record_answer(pending, text)
         context.bot_data["pending_personality_q"] = None
 
-        # Her 5 cevapta bir profil guncelle
+        # Update profile every 5 answers
         if profile_mgr.profile["total_answers"] % 5 == 0:
             await profile_mgr.analyze_profile(context.bot_data["gemini"])
 
         await update.message.reply_text("Thank you, I saved your answer! 📝")
         return
 
-    # Normal sohbet
+    # Normal chat
     await update.message.reply_chat_action("typing")
-    response = SohbetAgent.handle(text, context.bot_data["gemini"],
+    response = ChatAgent.handle(text, context.bot_data["gemini"],
                                     context.bot_data["memory"],
                                     context.bot_data["profile"])
     await update.message.reply_text(response)
 
 # ============================================================
-# ZAMANLI GOREVLER
+# SCHEDULED TASKS
 # ============================================================
-async def sabah_brifing(app):
+async def morning_briefing(app):
     sheets = app.bot_data["sheets"]
     gemini = app.bot_data["gemini"]
     profile_mgr = app.bot_data["profile"]
 
-    gorevler = sheets.get_all_rows(config.SHEET_TODO)
-    bekleyenler = [g for g in gorevler if g.get("Status", "").lower() != "tamamlandi"]
+    tasks = sheets.get_all_rows(config.SHEET_TODO)
+    pending = [g for g in tasks if g.get("Status", "").lower() != "tamamlandi" and g.get("Status", "").lower() != "completed"]
     profile_ctx = profile_mgr.get_profile_for_prompt()
 
-    prompt = f"""Sen benim kisisel asistanimsin. Kisa bir sabah brifingi hazirla.
+    prompt = f"""You are the User's personal assistant. Prepare a short morning briefing.
 
 {profile_ctx}
 
-Tarih: {now_istanbul().strftime('%Y-%m-%d %A')}
-Bekleyen gorevler: {json.dumps(bekleyenler, ensure_ascii=False)}
+Date: {now_local().strftime('%Y-%m-%d %A')}
+Pending tasks: {json.dumps(pending, ensure_ascii=False)}
 
-Kurallar: Gunaydin de, gorevleri listele, 4-5 satir sade mesaj."""
+Rules: Say good morning, list the tasks, keep it a simple 4-5 line message."""
 
     response = gemini.chat(prompt, "Prepare my morning briefing")
     await app.bot.send_message(chat_id=config.CHAT_ID, text=response)
     logger.info("Morning briefing sent.")
 
 
-async def koc_mesaj(app):
+async def coach_message(app):
     sheets = app.bot_data["sheets"]
     gemini = app.bot_data["gemini"]
     profile_mgr = app.bot_data["profile"]
 
-    gun_veri = sheets.get_recent_rows(config.SHEET_GUN_VERI, 10)
-    saat = now_istanbul().strftime("%H:%M")
-    tarih = now_istanbul().strftime("%Y-%m-%d")
+    daily_data = sheets.get_recent_rows(config.SHEET_GUN_VERI, 10)
+    current_time = now_local().strftime("%H:%M")
+    current_date = now_local().strftime("%Y-%m-%d")
     profile_ctx = profile_mgr.get_profile_for_prompt()
 
-    prompt = f"""Sen Safa'nin performans kocusun.
+    prompt = f"""You are the User's performance coach.
 
 {profile_ctx}
 
-GUN-VERI: {json.dumps(gun_veri, ensure_ascii=False)}
+DAILY DATA: {json.dumps(daily_data, ensure_ascii=False)}
 
-GOREV: Bugun ({tarih}) PLAN varsa hatırlat. 4 saat ne yaptin, siradaki plan ne sor.
-/r ile cevap vermesini hatırlat. Saat {saat}'a gore ton ayarla.
-Kisa (3-4 cumle), samimi ama sert."""
+TASK: Ask how their day went today ({current_date}), what they accomplished today, and what they plan to do tomorrow.
+Remind them to answer using /r. Keep it short (3-4 sentences), friendly, and motivating."""
 
-    response = gemini.chat(prompt, f"Saat {saat}, koc mesaji")
+    response = gemini.chat(prompt, f"Time is {current_time}, coach message")
     await app.bot.send_message(chat_id=config.CHAT_ID, text=response)
-    logger.info(f"Coach message sent (saat {saat}).")
+    logger.info("Coach message sent.")
 
 
-async def haftalik_degerlendirme(app):
-    """Gemini PRO ile derin haftalik analiz"""
+async def weekly_review(app):
+    """Deep weekly analysis using Gemini PRO"""
     sheets = app.bot_data["sheets"]
     gemini = app.bot_data["gemini"]
     profile_mgr = app.bot_data["profile"]
 
-    gun_veri = sheets.get_all_rows(config.SHEET_GUN_VERI)
-    gorevler = sheets.get_all_rows(config.SHEET_TODO)
-    projeler = sheets.get_all_rows(config.SHEET_PROJELER)
-    gunluk = sheets.get_all_rows(config.SHEET_GUNLUK)
+    daily_data = sheets.get_all_rows(config.SHEET_GUN_VERI)
+    tasks = sheets.get_all_rows(config.SHEET_TODO)
+    projects = sheets.get_all_rows(config.SHEET_PROJELER)
+    diary = sheets.get_all_rows(config.SHEET_GUNLUK)
     profile_ctx = profile_mgr.get_profile_for_prompt()
 
-    prompt = f"""Sen Safa'nin haftalik performans analistisin. DERIN ve KAPSAMLI bir analiz yap.
+    prompt = f"""You are the User's weekly performance analyst. Perform a DEEP and COMPREHENSIVE analysis.
 
 {profile_ctx}
 
-VERILER:
-- Gun-veri: {json.dumps(gun_veri[-20:], ensure_ascii=False)}
-- Gorevler: {json.dumps(gorevler, ensure_ascii=False)}
-- Projeler: {json.dumps(projeler, ensure_ascii=False)}
-- Gunluk: {json.dumps(gunluk[-10:], ensure_ascii=False)}
+DATA:
+- Daily Data: {json.dumps(daily_data[-20:], ensure_ascii=False)}
+- Tasks: {json.dumps(tasks, ensure_ascii=False)}
+- Projects: {json.dumps(projects, ensure_ascii=False)}
+- Diary: {json.dumps(diary[-10:], ensure_ascii=False)}
 
-RAPOR BASLIKLARI:
-1. PERFORMANS OZETI - Plan vs gerceklesen, basari yuzdesi
-2. GOREV DURUMU - Tamamlanan/bekleyen
-3. PROJE ILERLEMESI - Her proje detayli
-4. KISILIK BAZLI ANALIZ - Profiline gore guclu/zayif yanlari
-5. GELISIM ONERILERI - 3 somut, kisilige uygun oneri
-6. MOTIVASYON - Kisilik tarzina uygun kapatis"""
+REPORT HEADINGS:
+1. PERFORMANCE SUMMARY - Planned vs actual, success percentage
+2. TASK STATUS - Completed/pending
+3. PROJECT PROGRESS - Detailed for each project
+4. PERSONALITY-BASED ANALYSIS - Strengths/weaknesses according to the profile
+5. DEVELOPMENT SUGGESTIONS - 3 concrete suggestions suited to the personality
+6. MOTIVATION - A closing tailored to the personality style"""
 
-    # PRO model kullan!
-    response = gemini.chat_pro(prompt, "Do a weekly review")
+    # Use PRO model!
+    response = gemini.chat_pro(prompt, "Perform weekly review")
 
     sheets.append_row(config.SHEET_HAFTALIK, {
-        "Date": now_istanbul().strftime("%Y-%m-%d"),
-        "WeekNo": str(now_istanbul().isocalendar()[1]),
+        "Date": now_local().strftime("%Y-%m-%d"),
+        "WeekNo": str(now_local().isocalendar()[1]),
         "Report": response[:500],
         "SuccessPercentage": ""
     })
@@ -676,10 +655,22 @@ RAPOR BASLIKLARI:
     logger.info("Weekly review sent (Gemini Pro).")
 
 
-async def kisilik_sorusu(app):
-    """Rastgele zamanlarda kisilik sorusu gonder"""
+async def personality_question(app):
+    """Generate and send dynamic personality question using Gemini"""
     profile_mgr = app.bot_data["profile"]
-    question = profile_mgr.get_random_question()
+    gemini = app.bot_data["gemini"]
+    
+    past_questions = [item['q'] for item in profile_mgr.qa_history.get("questions", [])]
+    past_text = json.dumps(past_questions[-20:], ensure_ascii=False)
+    
+    prompt = f"""You are a psychologist. Ask a single thought-provoking question to get to know the user deeper and analyze their Big Five personality traits (Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism) and values.
+    
+You have previously asked these questions (DO NOT REPEAT THEM):
+{past_text}
+
+Just write the question. It should be short, clear, and thought-provoking. (Example: "What is the one thing you absolutely cannot tolerate in life, and what does that say about you?")"""
+
+    question = gemini.chat(prompt, "Generate a new personality question.")
     app.bot_data["pending_personality_q"] = question
 
     await app.bot.send_message(
@@ -687,36 +678,40 @@ async def kisilik_sorusu(app):
         text=f"🧠 **I want to get to know you:**\n\n_{question}_\n\n_(Just type your answer, I will save it)_",
         parse_mode="Markdown"
     )
-    logger.info("Personality question sent.")
+    logger.info("Dynamic personality question sent.")
 
 
 def schedule_personality_questions(scheduler, app):
-    """Gun icinde rastgele saatlerde kisilik sorulari planla"""
-    now = now_istanbul()
-    today_start = now.replace(hour=9, minute=0, second=0, microsecond=0)
-    today_end = now.replace(hour=22, minute=0, second=0, microsecond=0)
+    """Schedule personality questions at random times during the day"""
+    now = now_local()
+    
+    # After 20 questions are answered, only ask 1 question per day
+    profile_mgr = app.bot_data["profile"]
+    total_answers = profile_mgr.profile.get("total_answers", 0)
+    
+    num_questions = 1 if total_answers >= 20 else config.PERSONALITY_QUESTIONS_PER_DAY
 
-    for i in range(config.PERSONALITY_QUESTIONS_PER_DAY):
+    for i in range(num_questions):
         random_hour = random.randint(9, 21)
         random_minute = random.randint(0, 59)
         run_time = now.replace(hour=random_hour, minute=random_minute, second=0, microsecond=0)
 
         if run_time > now:
             scheduler.add_job(
-                kisilik_sorusu,
+                personality_question,
                 DateTrigger(run_date=run_time),
                 args=[app],
                 id=f"personality_{i}_{now.strftime('%Y%m%d')}"
             )
-            logger.info(f"Personality question scheduled: {run_time.strftime('%H:%M')}")
+            logger.info(f"Personality question scheduled for: {run_time.strftime('%H:%M')}")
 
 # ============================================================
-# ANA PROGRAM
+# MAIN PROGRAM
 # ============================================================
 def main():
     print("=" * 50)
     print("  AI PERSONAL ASSISTANT v2.0")
-    print("  Personality Profile + Gemini Pro")
+    print("  Personality Profile + Gemini Pro + Sage Mode")
     print("=" * 50)
 
     sheets = SheetsManager()
@@ -731,40 +726,41 @@ def main():
     app.bot_data["profile"] = profile_mgr
     app.bot_data["pending_personality_q"] = None
 
-    # Komut handler'lari
+    # Command handlers
     app.add_handler(CommandHandler("h", cmd_help))
-    app.add_handler(CommandHandler("r", cmd_rapor))
+    app.add_handler(CommandHandler("r", cmd_report))
     app.add_handler(CommandHandler("t", cmd_todo))
-    app.add_handler(CommandHandler("g", cmd_gunluk))
-    app.add_handler(CommandHandler("p", cmd_proje))
-    app.add_handler(CommandHandler("profil", cmd_profil))
+    app.add_handler(CommandHandler("g", cmd_diary))
+    app.add_handler(CommandHandler("p", cmd_project))
+    app.add_handler(CommandHandler("bilge", cmd_sage))
+    app.add_handler(CommandHandler("profil", cmd_profile))
     app.add_handler(CommandHandler("start", cmd_help))
     app.add_handler(CommandHandler("help", cmd_help))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
 
-    # Zamanlayici
+    # Scheduler
     scheduler = AsyncIOScheduler(timezone=config.TIMEZONE)
 
-    scheduler.add_job(sabah_brifing, CronTrigger(hour=config.BRIFING_HOUR, minute=config.BRIFING_MINUTE),
-                      args=[app], id="sabah_brifing")
+    scheduler.add_job(morning_briefing, CronTrigger(hour=config.BRIFING_HOUR, minute=config.BRIFING_MINUTE),
+                      args=[app], id="morning_briefing")
 
-    for saat in config.KOC_HOURS:
-        scheduler.add_job(koc_mesaj, CronTrigger(hour=saat, minute=0),
-                          args=[app], id=f"koc_{saat}")
+    # Send coach message at exactly 23:59 (midnight)
+    scheduler.add_job(coach_message, CronTrigger(hour=23, minute=59),
+                      args=[app], id="coach_24")
 
-    scheduler.add_job(haftalik_degerlendirme,
+    scheduler.add_job(weekly_review,
                       CronTrigger(day_of_week=config.HAFTALIK_DAY,
                                   hour=config.HAFTALIK_HOUR, minute=config.HAFTALIK_MINUTE),
-                      args=[app], id="haftalik")
+                      args=[app], id="weekly_review")
 
-    # Her gun 03:00'da yeni kisilik sorulari planla
+    # Schedule new personality questions every day at 03:00
     scheduler.add_job(
         lambda: schedule_personality_questions(scheduler, app),
         CronTrigger(hour=3, minute=0),
         id="plan_personality_questions"
     )
 
-    # Bugun icin de hemen planla
+    # Schedule immediately for today
     schedule_personality_questions(scheduler, app)
 
     scheduler.start()
